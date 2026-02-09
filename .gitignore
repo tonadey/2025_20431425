@@ -1,2 +1,6 @@
 secret_password.txt
-build/
+*.exe
+*.lib
+*.obj
+debug/
+release/
