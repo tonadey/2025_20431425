@@ -1,4 +1,5 @@
 secret_password.txt
+secret.txt
 *.exe
 *.lib
 *.obj
