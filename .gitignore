@@ -5,3 +5,7 @@ secret.txt
 *.obj
 debug/
 release/
+build/
+.vs/
+out/
+bin/
