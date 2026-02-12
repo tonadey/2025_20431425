@@ -3,6 +3,8 @@ secret.txt
 *.exe
 *.lib
 *.obj
+*.pdb
+*.ilk
 debug/
 release/
 build/
