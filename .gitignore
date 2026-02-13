@@ -11,3 +11,5 @@ build/
 .vs/
 out/
 bin/
+html/ 
+latex/
