@@ -5,6 +5,9 @@ secret.txt
 *.obj
 *.pdb
 *.ilk
+*.vcxproj
+*.slnx
+CMakeSettings.json
 debug/
 release/
 build/
