@@ -1,13 +1,27 @@
+# Secrets
 secret_password.txt
 secret.txt
+
+# Executables and Binaries
 *.exe
 *.lib
+*.dll
+*.app
+
+# Build Artifacts and Logs
 *.obj
 *.pdb
 *.ilk
-*.vcxproj
+*.exp
+*.map
+*.log
+
+# Project Files (Keep .vcxproj if others need to build your project!)
 *.slnx
+*.vcxproj.user
 CMakeSettings.json
+
+# Directories
 debug/
 release/
 build/
