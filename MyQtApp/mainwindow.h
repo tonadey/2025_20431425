@@ -27,6 +27,7 @@ private slots:
     void handleButton1(); 
     void handleButton2(); 
     void handleTreeClicked(); //New slot for selection 
+    void on_actionOpen_File_triggered();
 
 private:
     Ui::MainWindow* ui;      // Only keep one of these!

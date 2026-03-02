@@ -14,7 +14,13 @@ set(PROJECT_SOURCES
     ModelPart.h          # Added
     ModelPartList.cpp    # Added
     ModelPartList.h      # Added
+    icons.qrc
+
 )
+
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON) 
+set(CMAKE_AUTOMOC ON)
 
 # Standard Qt project setup
 qt_standard_project_setup()
@@ -23,6 +29,8 @@ qt_standard_project_setup()
 qt_add_executable(MyQtApp
     WIN32 MACOSX_BUNDLE
     ${PROJECT_SOURCES}
+    icons.qrc
+
 )
 
 # Link the libraries

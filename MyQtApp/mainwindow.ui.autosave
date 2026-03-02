@@ -103,9 +103,6 @@
    <addaction name="actionOpen_File"/>
   </widget>
   <action name="actionOpen_File">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
    <property name="icon">
     <iconset resource="icons.qrc">
      <normaloff>:/icons/icons/fileopen.png</normaloff>:/icons/icons/fileopen.png</iconset>

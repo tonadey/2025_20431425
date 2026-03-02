@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include "ModelPart.h"      
 #include "ModelPartList.h"
+#include <QFileDialog>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -10,6 +11,8 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    connect(ui->actionOpen_File, &QAction::triggered, this, &MainWindow::on_actionOpen_File_triggered);
+
     // Connect the wires to the push buttons
     connect(ui->pushButton, &QPushButton::released, this, &MainWindow::handleButton1);
     connect(ui->pushButton_2, &QPushButton::released, this, &MainWindow::handleButton2);
@@ -80,4 +83,27 @@ void MainWindow::handleTreeClicked() {
 
     /* Update the status bar */
     emit statusUpdateMessage(QString("The selected item is: ") + text, 0);
+}
+
+void MainWindow::on_actionOpen_File_triggered() {
+    // Open the Windows file browser
+    QString fileName = QFileDialog::getOpenFileName(this,
+        tr("Open STL File"), "", tr("STL Files (*.stl);;All Files (*)"));
+
+    if (!fileName.isEmpty()) {
+        QString visible("true");
+
+        // Create the new part using the initializer list constructor
+        ModelPart* newPart = new ModelPart({ fileName, visible });
+
+        // Append it to the Root Item (just like you did in the constructor)
+        ModelPart* rootItem = this->partList->getRootItem();
+        rootItem->appendChild(newPart);
+
+        // Notify the view that the data has changed
+        // This ensures the new file actually appears in the TreeView
+        this->partList->dataChanged(QModelIndex(), QModelIndex());
+
+        emit statusUpdateMessage(QString("Loaded: %1").arg(fileName), 0);
+    }
 }
