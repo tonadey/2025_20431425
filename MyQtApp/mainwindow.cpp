@@ -60,9 +60,31 @@ void MainWindow::handleButton1() {
 
 //Function for Button 2 Action 
 void MainWindow::handleButton2() {
-    QMessageBox msgBox;
-    msgBox.setText("Button 2 was clicked!");
-    msgBox.exec();
+    // 1. Get the selected part from your TreeView (Logic from previous steps)
+    QModelIndex index = ui->treeView->currentIndex();
+    if (!index.isValid()) return;
+    ModelPart* selectedPart = static_cast<ModelPart*>(index.internalPointer());
+
+    // 2. Create the dialog and FILL it with current data
+    OptionDialog dialog(this);
+    dialog.setFileData(selectedPart->data(0).toString(), true);
+
+    // 3. Show the dialog
+    if (dialog.exec() == QDialog::Accepted) {
+        
+        // 4. Update the ModelPart with new data from the dialog
+        QString newName = dialog.getName();
+        bool newVisible = dialog.getIsVisible(); //check checkbox state
+
+        //Change current name to new name 
+        selectedPart->set(0, newName);
+
+        //Display message confirming name has been updated 
+        emit statusUpdateMessage(QString("Updated part to: %1").arg(newName), 0);
+
+        // Refresh the tree to show the new name
+        this->partList->dataChanged(index, index);
+    }
 }
 
 //Function for Selection Logic 
