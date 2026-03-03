@@ -86,24 +86,26 @@ void MainWindow::handleTreeClicked() {
 }
 
 void MainWindow::on_actionOpen_File_triggered() {
-    // Open the Windows file browser
-    QString fileName = QFileDialog::getOpenFileName(this,
-        tr("Open STL File"), "", tr("STL Files (*.stl);;All Files (*)"));
+    // Call the static function with specific filters
+    QString fileName = QFileDialog::getOpenFileName(
+        this,
+        tr("Open File"),
+        "C:\\", // Default directory
+        tr("STL Files (*.stl);;Text Files (*.txt);;All Files (*)") // Combined filters
+    );
 
     if (!fileName.isEmpty()) {
-        QString visible("true");
+        // 1. Create the new part for your data structure
+        ModelPart* newPart = new ModelPart({ fileName, "true" });
 
-        // Create the new part using the initializer list constructor
-        ModelPart* newPart = new ModelPart({ fileName, visible });
-
-        // Append it to the Root Item (just like you did in the constructor)
+        // 2. Add it to the tree
         ModelPart* rootItem = this->partList->getRootItem();
         rootItem->appendChild(newPart);
 
-        // Notify the view that the data has changed
-        // This ensures the new file actually appears in the TreeView
-        this->partList->dataChanged(QModelIndex(), QModelIndex());
+        // 3. Update the Status Bar to prove it works
+        emit statusUpdateMessage(QString("File Selected: %1").arg(fileName), 0);
 
-        emit statusUpdateMessage(QString("Loaded: %1").arg(fileName), 0);
+        // 4. Refresh the view
+        this->partList->dataChanged(QModelIndex(), QModelIndex());
     }
 }

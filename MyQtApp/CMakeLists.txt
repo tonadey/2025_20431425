@@ -14,7 +14,10 @@ set(PROJECT_SOURCES
     ModelPart.h          # Added
     ModelPartList.cpp    # Added
     ModelPartList.h      # Added
-    icons.qrc
+    icons.qrc           #added
+    optiondialog.cpp  #added
+        optiondialog.h    #added
+        optiondialog.ui #added
 
 )
 
@@ -30,6 +33,7 @@ qt_add_executable(MyQtApp
     WIN32 MACOSX_BUNDLE
     ${PROJECT_SOURCES}
     icons.qrc
+    optiondialog.h optiondialog.cpp optiondialog.ui
 
 )
 
