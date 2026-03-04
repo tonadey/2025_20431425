@@ -4,6 +4,8 @@
 #include "ModelPart.h"      
 #include "ModelPartList.h"
 #include <QFileDialog>
+#include <QFileInfo>
+#include <QDebug>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -11,7 +13,8 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    connect(ui->actionOpen_File, &QAction::triggered, this, &MainWindow::on_actionOpen_File_triggered);
+    //connect(ui->actionOpen_File, &QAction::triggered, this, &MainWindow::on_actionOpen_File_triggered);
+    ui->treeView->addAction(ui->actionItem_Options);
 
     // Connect the wires to the push buttons
     connect(ui->pushButton, &QPushButton::released, this, &MainWindow::handleButton1);
@@ -32,13 +35,13 @@ MainWindow::MainWindow(QWidget *parent)
         QString name = QString("TopLevel %1").arg(i);
         QString visible("true");
 
-        ModelPart* childItem = new ModelPart({ name, visible });
+        ModelPart* childItem = new ModelPart({ name, visible, "0", "0", "0"});
         rootItem->appendChild(childItem);
 
         for (int j = 0; j < 5; j++) {
             QString name = QString("Item %1,%2").arg(i).arg(j);
             QString visible("true");
-            ModelPart* childChildItem = new ModelPart({ name, visible });
+            ModelPart* childChildItem = new ModelPart({ name, visible, "0", "0", "0"});
             childItem->appendChild(childChildItem);
         }
     }
@@ -67,25 +70,35 @@ void MainWindow::handleButton2() {
 
     // 2. Create the dialog and FILL it with current data
     OptionDialog dialog(this);
-    dialog.setFileData(selectedPart->data(0).toString(), true);
+    QString currentName = selectedPart->data(0).toString();
+    bool currentVisible = (selectedPart->data(1).toString() == "true");
 
-    // 3. Show the dialog
+    int currentR = selectedPart->data(2).toInt();
+    int currentG = selectedPart->data(3).toInt();
+    int currentB = selectedPart->data(4).toInt();
+
+    dialog.setFileData(currentName, currentVisible, currentR, currentG, currentB);
+
     if (dialog.exec() == QDialog::Accepted) {
-        
-        // 4. Update the ModelPart with new data from the dialog
-        QString newName = dialog.getName();
-        bool newVisible = dialog.getIsVisible(); //check checkbox state
 
-        //Change current name to new name 
-        selectedPart->set(0, newName);
+        // 3. PUSH: Save the NEW values from the dialog back into the ModelPart
+        selectedPart->set(0, dialog.getName());
+        selectedPart->set(1, dialog.getIsVisible() ? "true" : "false");
 
-        //Display message confirming name has been updated 
-        emit statusUpdateMessage(QString("Updated part to: %1").arg(newName), 0);
+        // Convert the integers from spinboxes back to strings for storage
+        selectedPart->set(2, QString::number(dialog.getR()));
+        selectedPart->set(3, QString::number(dialog.getG()));
+        selectedPart->set(4, QString::number(dialog.getB()));
 
-        // Refresh the tree to show the new name
-        this->partList->dataChanged(index, index);
+        emit statusUpdateMessage(QString("Updated part: %1").arg(dialog.getName()), 0);
+
+        qDebug() << "Saved R value is:" << selectedPart->data(2).toString();
+
+        // 4. REFRESH: Tell the tree to update the whole row (Columns 0 through 4)
+        this->partList->dataChanged(index.siblingAtColumn(0), index.siblingAtColumn(4));
     }
 }
+
 
 //Function for Selection Logic 
 void MainWindow::handleTreeClicked() {
@@ -108,26 +121,33 @@ void MainWindow::handleTreeClicked() {
 }
 
 void MainWindow::on_actionOpen_File_triggered() {
-    // Call the static function with specific filters
-    QString fileName = QFileDialog::getOpenFileName(
-        this,
-        tr("Open File"),
-        "C:\\", // Default directory
-        tr("STL Files (*.stl);;Text Files (*.txt);;All Files (*)") // Combined filters
-    );
+    // 1. Get the full path from the user
+    QString fullPath = QFileDialog::getOpenFileName(this, tr("Open File"), "/", tr("All Files (*.*)"));
 
-    if (!fileName.isEmpty()) {
-        // 1. Create the new part for your data structure
-        ModelPart* newPart = new ModelPart({ fileName, "true" });
+    if (!fullPath.isEmpty()) {
+        // 2. Extract the short name for the TreeView
+        QFileInfo fileInfo(fullPath);
+        QString shortName = fileInfo.fileName();
 
-        // 2. Add it to the tree
-        ModelPart* rootItem = this->partList->getRootItem();
-        rootItem->appendChild(newPart);
+        QModelIndex index = ui->treeView->currentIndex();
+        if (index.isValid()) {
+            ModelPart* selectedPart = static_cast<ModelPart*>(index.internalPointer());
 
-        // 3. Update the Status Bar to prove it works
-        emit statusUpdateMessage(QString("File Selected: %1").arg(fileName), 0);
+            // 3. Update the tree item with the SHORT name
+            selectedPart->set(0, shortName);
 
-        // 4. Refresh the view
-        this->partList->dataChanged(QModelIndex(), QModelIndex());
+            // 4. Refresh the tree
+            emit partList->dataChanged(index, index);
+
+            // 5. Update the status bar with the FULL path
+            emit statusUpdateMessage(QString("File Selected: %1").arg(fullPath), 0);
+        }
+        else {
+            emit statusUpdateMessage(QString("No part selected to rename!"), 0);
+        }
     }
+}
+
+void MainWindow::on_actionItem_Options_triggered() {
+    handleButton2(); 
 }

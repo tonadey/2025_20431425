@@ -27,12 +27,13 @@ signals:
 private slots:
     void handleButton1(); 
     void handleButton2(); 
-    void handleTreeClicked(); //New slot for selection 
+    void handleTreeClicked(); 
     void on_actionOpen_File_triggered();
+    void on_actionItem_Options_triggered(); 
 
 private:
-    Ui::MainWindow* ui;      // Only keep one of these!
-    ModelPartList* partList; // This is your pointer to the tree data
+    Ui::MainWindow* ui;      
+    ModelPartList* partList; // pointer to the tree data
 };
 
 #endif // MAINWINDOW_H
