@@ -1,0 +1,15 @@
+# Ignore the entire build directory
+build/
+
+# Ignore Visual Studio temporary files
+.vs/
+*.sln
+*.vcxproj
+*.filters
+*.user
+
+# Ignore compiled binaries
+*.exe
+*.dll
+*.lib
+*.pdb
