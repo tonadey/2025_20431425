@@ -137,6 +137,7 @@ void MainWindow::handleButton2() {
 
         qDebug() << "Saved R value is:" << selectedPart->data(2).toString();
 
+
         // 4. REFRESH: Tell the tree to update the whole row (Columns 0 through 4)
         this->partList->dataChanged(index.siblingAtColumn(0), index.siblingAtColumn(4));
     }
