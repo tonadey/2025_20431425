@@ -1,2 +1,16 @@
+# Ignore the entire build folder
 build/
+bin/
+lib/
+
+# Ignore Visual Studio temporary files
 .vs/
+*.user
+*.sln
+*.vcxproj
+*.filters
+
+# Ignore Qt generated files
+ui_*.h
+moc_*.cpp
+qrc_*.cpp
