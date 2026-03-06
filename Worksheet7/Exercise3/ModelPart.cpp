@@ -26,6 +26,18 @@ ModelPart::ModelPart(const QList<QVariant>& data, ModelPart* parent )
     // Initialize visibility based on the second column of data
     this->isVisible = (data.at(1).toString().toLower() == "true");
     /* You probably want to give the item a default colour */
+    // Default / stored colour from columns 2,3,4 if present
+    unsigned char r = 0;
+    unsigned char g = 0;
+    unsigned char b = 0;
+
+    if (data.size() > 4) {
+        r = static_cast<unsigned char>(data.at(2).toInt());
+        g = static_cast<unsigned char>(data.at(3).toInt());
+        b = static_cast<unsigned char>(data.at(4).toInt());
+    }
+
+    colour.Set(r, g, b);
 }
 
 
@@ -103,43 +115,31 @@ int ModelPart::row() const {
 }
 
 void ModelPart::setColour(const unsigned char R, const unsigned char G, const unsigned char B) {
-    /* This is a placeholder function that you will need to modify if you want to use it */
-    
-    /* As the name suggests ... */
+    colour.Set(R, G, B);
+    updateActorProperties();
 }
 
 unsigned char ModelPart::getColourR() {
-    /* This is a placeholder function that you will need to modify if you want to use it */
-    
-    /* As the name suggests ... */
-    return 0;   // needs updating
+    return colour.GetRed();
 }
 
 unsigned char ModelPart::getColourG() {
-    /* This is a placeholder function that you will need to modify if you want to use it */
-    
-    /* As the name suggests ... */
-    return 0;   // needs updating
+    return colour.GetGreen();
 }
 
 
 unsigned char ModelPart::getColourB() {
-   /* This is a placeholder function that you will need to modify if you want to use it */
-    
-    /* As the name suggests ... */
-    return 0;   // needs updating
+    return colour.GetBlue();
 }
 
 
 void ModelPart::setVisible(bool isVisible) {
     this->isVisible = isVisible;
     this->set(1, isVisible ? "true" : "false");
+    updateActorProperties();
 }
 
 bool ModelPart::visible() {
-    /* This is a placeholder function that you will need to modify if you want to use it */
-    
-    /* As the name suggests ... */
     return isVisible;
 }
 
@@ -158,7 +158,9 @@ void ModelPart::loadSTL( QString filename ) {
     actor->SetMapper(mapper);
 
     // Ensure it starts visible
-    this->isVisible = true;
+  //  this->isVisible = true;
+    // Apply current stored visibility + colour
+    updateActorProperties();
 }
 
 //Getter for retrieving the actor 
@@ -180,4 +182,20 @@ vractor->SetMapper(vrmapper);
 vractor->SetProperty(actor->GetProperty());
 
 return vractor; }
+
+
+
+void ModelPart::updateActorProperties() {
+    if (!actor) return;
+
+    // Visibility
+    actor->SetVisibility(isVisible ? 1 : 0);
+
+    // Colour
+    actor->GetProperty()->SetColor(
+        colour.GetRed() / 255.0,
+        colour.GetGreen() / 255.0,
+        colour.GetBlue() / 255.0
+    );
+}
 

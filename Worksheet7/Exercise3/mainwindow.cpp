@@ -32,6 +32,11 @@ MainWindow::MainWindow(QWidget *parent)
     renderer = vtkSmartPointer<vtkRenderer>::New();
     renderWindow->AddRenderer(renderer);
 
+
+    //Set text to be shown on buttons 
+    ui->pushButton->setText("Add Part");
+    ui->pushButton_2->setText("Edit Part Properties");
+
     /* 3. Create the Cylinder object - comment this out for exercise 4*/
     //vtkNew<vtkCylinderSource> cylinder;
     //cylinder->SetResolution(8);
@@ -124,22 +129,27 @@ void MainWindow::handleButton2() {
 
     if (dialog.exec() == QDialog::Accepted) {
 
-        // 3. PUSH: Save the NEW values from the dialog back into the ModelPart
+        // Update displayed/stored data
         selectedPart->set(0, dialog.getName());
-        selectedPart->set(1, dialog.getIsVisible() ? "true" : "false");
-
-        // Convert the integers from spinboxes back to strings for storage
         selectedPart->set(2, QString::number(dialog.getR()));
         selectedPart->set(3, QString::number(dialog.getG()));
         selectedPart->set(4, QString::number(dialog.getB()));
 
+        // Update actual model properties
+        selectedPart->setVisible(dialog.getIsVisible());
+        selectedPart->setColour(
+            static_cast<unsigned char>(dialog.getR()),
+            static_cast<unsigned char>(dialog.getG()),
+            static_cast<unsigned char>(dialog.getB())
+        );
+
         emit statusUpdateMessage(QString("Updated part: %1").arg(dialog.getName()), 0);
 
-        qDebug() << "Saved R value is:" << selectedPart->data(2).toString();
-
-
-        // 4. REFRESH: Tell the tree to update the whole row (Columns 0 through 4)
+        // Refresh tree display
         this->partList->dataChanged(index.siblingAtColumn(0), index.siblingAtColumn(4));
+
+        // Refresh VTK render
+        updateRender();
     }
 }
 
@@ -204,7 +214,7 @@ void MainWindow::on_actionOpen_File_triggered() {
         QModelIndex index = ui->treeView->currentIndex();
 
         // Append to tree
-        partList->appendChild(index, { shortName, true });
+        partList->appendChild(index, { shortName, "true", "200", "200", "200" });
 
         // Get the newly created part to load the data
         int newRow = partList->rowCount(index) - 1;
