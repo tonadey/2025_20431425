@@ -13,19 +13,13 @@
 #include <QString>
 #include <QList>
 #include <QVariant>
-
-/* VTK headers - will be needed when VTK used in next worksheet,
- * commented out for now
- *
- * Note that there are a few function definitions and variables
- * commented out below - this is because you haven't yet installed
- * the VTK library which is needed.
- */
-//#include <vtkSmartPointer.h>
-//#include <vtkMapper.h>
-//#include <vtkActor.h>
-//#include <vtkSTLReader.h>
-//#include <vtkColor.h>
+#include <vtkSmartPointer.h>
+#include <vtkMapper.h>
+#include <vtkActor.h>
+#include <vtkSTLReader.h>
+#include <vtkColor.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkDataSetMapper.h>
 
 class ModelPart {
 public:
@@ -117,14 +111,14 @@ public:
     void loadSTL(QString fileName);
 
     /** Return actor
-      * @return pointer to default actor for GUI rendering
-      */
-    //vtkSmartPointer<vtkActor> getActor();
+      * @return pointer to default actor for GUI rendering*/
+    vtkSmartPointer<vtkActor> getActor();
 
     /** Return new actor for use in VR
       * @return pointer to new actor
       */
-    //vtkActor* getNewActor();
+    vtkActor* getNewActor();
+
 
 private:
     QList<ModelPart*>                           m_childItems;       /**< List (array) of child items */
@@ -139,10 +133,10 @@ private:
 	/* These are vtk properties that will be used to load/render a model of this part,
 	 * commented out for now but will be used later
 	 */
-	//vtkSmartPointer<vtkSTLReader>               file;               /**< Datafile from which part loaded */
-    //vtkSmartPointer<vtkMapper>                  mapper;             /**< Mapper for rendering */
-    //vtkSmartPointer<vtkActor>                   actor;              /**< Actor for rendering */
-    //vtkColor3<unsigned char>                    colour;             /**< User defineable colour */
+	vtkSmartPointer<vtkSTLReader>               reader;               /**< Datafile from which part loaded */
+    vtkSmartPointer<vtkMapper>                  mapper;             /**< Mapper for rendering */
+    vtkSmartPointer<vtkActor>                   actor;              /**< Actor for rendering */
+    vtkColor3<unsigned char>                    colour;             /**< User defineable colour */
 };  
 
 

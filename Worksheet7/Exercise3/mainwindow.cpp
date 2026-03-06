@@ -162,6 +162,7 @@ void MainWindow::handleTreeClicked() {
     emit statusUpdateMessage(QString("The selected item is: ") + text, 0);
 }
 
+/*OLD OPEN FILE ACTION FUNCTION FOR PERVIOUS WKSHTS 
 void MainWindow::on_actionOpen_File_triggered() {
     // 1. Get the full path from the user
     QString fullPath = QFileDialog::getOpenFileName(this, tr("Open File"), "/", tr("All Files (*.*)"));
@@ -188,8 +189,69 @@ void MainWindow::on_actionOpen_File_triggered() {
             emit statusUpdateMessage(QString("No part selected to rename!"), 0);
         }
     }
+}*/
+
+//NEW OPEN FILE ACTION FUNCTION FOR WRKSHT 7
+void MainWindow::on_actionOpen_File_triggered() {
+    // 1. Get the filename selected
+    QString fullPath = QFileDialog::getOpenFileName(this, tr("Open STL File"), "/", tr("STL Files (*.stl)"));
+
+    if (!fullPath.isEmpty()) {
+        QFileInfo fileInfo(fullPath);
+        QString shortName = fileInfo.fileName();
+
+        // Get the currently selected item to act as the parent
+        QModelIndex index = ui->treeView->currentIndex();
+
+        // 2. Add a new item to the tree view
+        // We add it as a child of the currently selected index
+        partList->appendChild(index, {shortName, true});
+
+        // 3. Get the pointer to that newly created child part
+        // We look at the last row of the current index
+        int newRow = partList->rowCount(index) - 1;
+        QModelIndex newPartIndex = partList->index(newRow, 0, index);
+        ModelPart* newPart = static_cast<ModelPart*>(newPartIndex.internalPointer());
+
+        // 4. Call the loadSTL() function of the newly created item
+        if (newPart) {
+            newPart->loadSTL(fullPath);
+
+            // 5. Update the 3D renderer
+            updateRender();
+
+            emit statusUpdateMessage(QString("Loaded CAD Part: %1").arg(fullPath), 0);
+        }
+    }
 }
 
 void MainWindow::on_actionItem_Options_triggered() {
     handleButton2(); 
+}
+
+void MainWindow::updateRender() {
+    renderer->RemoveAllViewProps(); // Clear the scene
+    // Start recursion from the root of the tree
+    updateRenderFromTree(partList->index(0, 0, QModelIndex()));
+    renderer->Render(); // Refresh the window
+}
+
+void MainWindow::updateRenderFromTree(const QModelIndex& index) {
+    if (index.isValid()) {
+        // Retrieve the ModelPart from the current index
+        ModelPart* selectedPart = static_cast<ModelPart*>(index.internalPointer());
+
+        // Add the part's actor to the renderer if it exists
+        if (selectedPart && selectedPart->getActor()) {
+            renderer->AddActor(selectedPart->getActor());
+        }
+    }
+
+    // Check for children and recurse
+    if (!partList->hasChildren(index)) return;
+
+    int rows = partList->rowCount(index);
+    for (int i = 0; i < rows; i++) {
+        updateRenderFromTree(partList->index(i, 0, index));
+    }
 }

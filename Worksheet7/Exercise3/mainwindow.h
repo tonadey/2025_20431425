@@ -41,6 +41,9 @@ private:
 private:
     vtkSmartPointer<vtkRenderer> renderer;
     vtkSmartPointer<vtkGenericOpenGLRenderWindow> renderWindow;
+private:
+    void updateRender();
+    void updateRenderFromTree(const QModelIndex& index);
 };
 
 #endif // MAINWINDOW_H
