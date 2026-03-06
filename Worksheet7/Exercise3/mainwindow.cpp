@@ -32,11 +32,11 @@ MainWindow::MainWindow(QWidget *parent)
     renderer = vtkSmartPointer<vtkRenderer>::New();
     renderWindow->AddRenderer(renderer);
 
-    /* 3. Create the Cylinder object */
-    vtkNew<vtkCylinderSource> cylinder;
-    cylinder->SetResolution(8);
+    /* 3. Create the Cylinder object - comment this out for exercise 4*/
+    //vtkNew<vtkCylinderSource> cylinder;
+    //cylinder->SetResolution(8);
 
-    /* 4. Setup Mapper and Actor */
+    /* 4. Setup Mapper and Actor - comment out for exercise 4 
     vtkNew<vtkPolyDataMapper> cylinderMapper;
     cylinderMapper->SetInputConnection(cylinder->GetOutputPort());
 
@@ -46,15 +46,17 @@ MainWindow::MainWindow(QWidget *parent)
     cylinderActor->RotateX(30.0);
     cylinderActor->RotateY(-45.0);
 
-    renderer->AddActor(cylinderActor);
+    renderer->AddActor(cylinderActor);*/
 
-    /* 5. Reset and position Camera */
+    /* 5. Reset and position Camera - comment out for exercise 4
     renderer->ResetCamera();
     renderer->GetActiveCamera()->Azimuth(30);
     renderer->GetActiveCamera()->Elevation(30);
-    renderer->ResetCameraClippingRange();
+    renderer->ResetCameraClippingRange();*/
 
     //END OF RENDERING LOGIC --------
+     
+    
     //connect(ui->actionOpen_File, &QAction::triggered, this, &MainWindow::on_actionOpen_File_triggered);
     ui->treeView->addAction(ui->actionItem_Options);
 
@@ -63,31 +65,30 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->pushButton_2, &QPushButton::released, this, &MainWindow::handleButton2);
 
     // Connect your custom signal to the statusbar's slot
-    connect(this, &MainWindow::statusUpdateMessage,
-        ui->statusbar, &QStatusBar::showMessage);
+    connect(this, &MainWindow::statusUpdateMessage, ui->statusbar, &QStatusBar::showMessage);
 
     //Partlist
     this->partList = new ModelPartList("PartsList");
     ui->treeView->setModel(this->partList); // Link the data to the UI widget
 
     ModelPart* rootItem = this->partList->getRootItem();
-
-    // Create 3 top-level items with 5 sub-items each
+        // Create 3 top-level items with 5 sub-items each
     for (int i = 0; i < 3; i++) {
         QString name = QString("TopLevel %1").arg(i);
         QString visible("true");
 
-        ModelPart* childItem = new ModelPart({ name, visible, "0", "0", "0"});
+        ModelPart* childItem = new ModelPart({ name, visible, "0", "0", "0" });
         rootItem->appendChild(childItem);
 
         for (int j = 0; j < 5; j++) {
             QString name = QString("Item %1,%2").arg(i).arg(j);
             QString visible("true");
-            ModelPart* childChildItem = new ModelPart({ name, visible, "0", "0", "0"});
+            ModelPart* childChildItem = new ModelPart({ name, visible, "0", "0", "0" });
             childItem->appendChild(childChildItem);
         }
     }
-    connect(ui->treeView, &QTreeView::clicked, this, &MainWindow::handleTreeClicked);
+    //connect(ui->treeView, &QTreeView::clicked, this, &MainWindow::handleTreeClicked);
+    updateRender();
 }
 
 MainWindow::~MainWindow()
@@ -193,34 +194,26 @@ void MainWindow::on_actionOpen_File_triggered() {
 
 //NEW OPEN FILE ACTION FUNCTION FOR WRKSHT 7
 void MainWindow::on_actionOpen_File_triggered() {
-    // 1. Get the filename selected
     QString fullPath = QFileDialog::getOpenFileName(this, tr("Open STL File"), "/", tr("STL Files (*.stl)"));
 
     if (!fullPath.isEmpty()) {
         QFileInfo fileInfo(fullPath);
         QString shortName = fileInfo.fileName();
 
-        // Get the currently selected item to act as the parent
         QModelIndex index = ui->treeView->currentIndex();
 
-        // 2. Add a new item to the tree view
-        // We add it as a child of the currently selected index
-        partList->appendChild(index, {shortName, true});
+        // Append to tree
+        partList->appendChild(index, { shortName, true });
 
-        // 3. Get the pointer to that newly created child part
-        // We look at the last row of the current index
+        // Get the newly created part to load the data
         int newRow = partList->rowCount(index) - 1;
         QModelIndex newPartIndex = partList->index(newRow, 0, index);
         ModelPart* newPart = static_cast<ModelPart*>(newPartIndex.internalPointer());
 
-        // 4. Call the loadSTL() function of the newly created item
         if (newPart) {
-            newPart->loadSTL(fullPath);
-
-            // 5. Update the 3D renderer
-            updateRender();
-
-            emit statusUpdateMessage(QString("Loaded CAD Part: %1").arg(fullPath), 0);
+            newPart->loadSTL(fullPath); // Load actual mesh data
+            updateRender(); // Refresh the 3D view
+            emit statusUpdateMessage(QString("Loaded: %1").arg(shortName), 0);
         }
     }
 }
@@ -230,24 +223,30 @@ void MainWindow::on_actionItem_Options_triggered() {
 }
 
 void MainWindow::updateRender() {
-    renderer->RemoveAllViewProps(); // Clear the scene
-    // Start recursion from the root of the tree
-    updateRenderFromTree(partList->index(0, 0, QModelIndex()));
-    renderer->Render(); // Refresh the window
+    if (renderer == nullptr || partList == nullptr) return;
+
+    renderer->RemoveAllViewProps();
+
+    // Loop through ALL top-level items in the tree
+    int topLevelRows = partList->rowCount(QModelIndex());
+    for (int i = 0; i < topLevelRows; i++) {
+        updateRenderFromTree(partList->index(i, 0, QModelIndex()));
+    }
+
+    renderer->ResetCamera();
+    renderWindow->Render();
 }
 
 void MainWindow::updateRenderFromTree(const QModelIndex& index) {
     if (index.isValid()) {
-        // Retrieve the ModelPart from the current index
         ModelPart* selectedPart = static_cast<ModelPart*>(index.internalPointer());
 
-        // Add the part's actor to the renderer if it exists
-        if (selectedPart && selectedPart->getActor()) {
+        // CRITICAL STABILITY CHECK
+        if (selectedPart && selectedPart->getActor() && selectedPart->visible()) {
             renderer->AddActor(selectedPart->getActor());
         }
     }
 
-    // Check for children and recurse
     if (!partList->hasChildren(index)) return;
 
     int rows = partList->rowCount(index);

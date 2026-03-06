@@ -19,7 +19,12 @@
 
 ModelPart::ModelPart(const QList<QVariant>& data, ModelPart* parent )
     : m_itemData(data), m_parentItem(parent) {
+    this->actor = nullptr;
+    this->reader = nullptr;
+    this->mapper = nullptr;
 
+    // Initialize visibility based on the second column of data
+    this->isVisible = (data.at(1).toString().toLower() == "true");
     /* You probably want to give the item a default colour */
 }
 
@@ -74,10 +79,13 @@ QVariant ModelPart::data(int column) const {
 void ModelPart::set(int column, const QVariant &value) {
     /* Set the data associated with a column of this item 
      */
-    if (column < 0 || column >= m_itemData.size())
-        return;
-
+    if (column < 0 || column >= m_itemData.size()) return;
     m_itemData.replace(column, value);
+
+    // If the visibility column (1) is changed, update the internal bool
+    if (column == 1) {
+        isVisible = (value.toString().toLower() == "true");
+    }
 }
 
 
@@ -124,20 +132,19 @@ unsigned char ModelPart::getColourB() {
 
 
 void ModelPart::setVisible(bool isVisible) {
-    /* This is a placeholder function that you will need to modify if you want to use it */
-    
-    /* As the name suggests ... */
+    this->isVisible = isVisible;
+    this->set(1, isVisible ? "true" : "false");
 }
 
 bool ModelPart::visible() {
     /* This is a placeholder function that you will need to modify if you want to use it */
     
     /* As the name suggests ... */
-    return false;
+    return isVisible;
 }
 
 void ModelPart::loadSTL( QString filename ) {
-    // 1. Create the reader for the STL file
+    // 1. Create the reader
     reader = vtkSmartPointer<vtkSTLReader>::New();
     reader->SetFileName(filename.toStdString().c_str());
     reader->Update();
@@ -149,6 +156,9 @@ void ModelPart::loadSTL( QString filename ) {
     // 3. Create the actor
     actor = vtkSmartPointer<vtkActor>::New();
     actor->SetMapper(mapper);
+
+    // Ensure it starts visible
+    this->isVisible = true;
 }
 
 //Getter for retrieving the actor 
